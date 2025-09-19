@@ -674,8 +674,11 @@
 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
             const payload = { 
-                instances: [{ "prompt": `${prompt}, aspect_ratio: ${currentAspectRatio}` }],
-                parameters: { "sampleCount": 1 }
+                instances: [{ "prompt": prompt }],
+                parameters: { 
+                    "sampleCount": 1,
+                    "aspectRatio": currentAspectRatio
+                }
             };
 
             try {
@@ -1077,4 +1080,5 @@
     </script>
 </body>
 </html>
+
 
