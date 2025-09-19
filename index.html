@@ -222,12 +222,859 @@
     </div>
 
     <script>
-        // IMPORTANT: Replace "" with your own Google AI API key.
+        console.log("Monika AI Studio script started successfully.");
+
+        // IMPORTANT: Your Google AI API key is placed here.
         // Get your key from Google AI Studio: https://aistudio.google.com/app/apikey
         const apiKey = "AIzaSyBm6sUwQSmQUDsD-6DJ1zwRtKTIZ82oPkM"; 
 
         const promptInput = document.getElementById('prompt-input');
         const generateButton = document.getElementById('generate-button');
         const suggestButton = document.getElementById('suggest-button');
-// ... existing code ... -->
+        const uploadButton = document.getElementById('upload-button');
+        const uploadInput = document.getElementById('upload-input');
+        const imageElement = document.getElementById('generated-image');
+        const placeholderText = document.getElementById('placeholder-text');
+        const loader = document.getElementById('loader');
+        const statusElement = document.getElementById('status');
+        const controlsContainer = document.getElementById('controls-container');
+        
+        const errorContainer = document.getElementById('error-container');
+        const errorMessageElement = document.getElementById('error-message');
+        
+        const describeButton = document.getElementById('describe-button');
+        const descriptionOutput = document.getElementById('description-output');
+        const readAloudButton = document.getElementById('read-aloud-button');
+        const questionInput = document.getElementById('question-input');
+        const askButton = document.getElementById('ask-button');
+
+        const editPromptInput = document.getElementById('edit-prompt-input');
+        const editButton = document.getElementById('edit-button');
+        const extractOutfitButton = document.getElementById('extract-outfit-button');
+        
+        const backgroundPromptInput = document.getElementById('background-prompt-input');
+        const changeBackgroundButton = document.getElementById('change-background-button');
+
+        const aspectRatioSelector = document.getElementById('aspect-ratio-selector');
+        const downloadButton = document.getElementById('download-button');
+
+        // Style Transfer Elements
+        const styleSourceInput = document.getElementById('style-source-input');
+        const styleSourceUploadButton = document.getElementById('style-source-upload-button');
+        const styleSourcePreview = document.getElementById('style-source-preview');
+        const targetImageInput = document.getElementById('target-image-input');
+        const targetImageUploadButton = document.getElementById('target-image-upload-button');
+        const targetImagePreview = document.getElementById('target-image-preview');
+        const applyStyleButton = document.getElementById('apply-style-button');
+        
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+        const changeAppBgButton = document.getElementById('change-app-bg-button');
+        const appBgInput = document.getElementById('app-bg-input');
+
+        let generatedImageData = null;
+        let styleSourceImageData = null;
+        let targetImageData = null;
+        let currentAspectRatio = '1:1';
+        
+        // --- API KEY CHECK ---
+        function checkApiKey() {
+            if (!apiKey || apiKey === "YOUR_API_KEY_HERE") {
+                errorMessageElement.textContent = "API Key is missing. Please add your Google AI API key to the script to enable API features.";
+                errorContainer.classList.remove('hidden');
+                return false;
+            }
+            return true;
+        }
+
+        // --- THEME SETUP ---
+        const applyTheme = () => {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                if(themeToggleDarkIcon) themeToggleDarkIcon.classList.add('hidden');
+                if(themeToggleLightIcon) themeToggleLightIcon.classList.remove('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                if(themeToggleDarkIcon) themeToggleDarkIcon.classList.remove('hidden');
+                if(themeToggleLightIcon) themeToggleLightIcon.classList.add('hidden');
+            }
+        };
+        applyTheme();
+
+        // --- BACKGROUND SETUP ---
+        const applyBackground = () => {
+            const savedBg = localStorage.getItem('appBackgroundImage');
+            if (savedBg) {
+                document.body.style.backgroundImage = `url('${savedBg}')`;
+            }
+        };
+        applyBackground();
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                console.log("DOM fully loaded. Attaching event listeners.");
+                document.getElementById('image-container').classList.add('aspect-square');
+
+                generateButton.addEventListener('click', generateImage);
+                suggestButton.addEventListener('click', suggestPrompt);
+                describeButton.addEventListener('click', describeImage);
+                readAloudButton.addEventListener('click', readAloud);
+                askButton.addEventListener('click', askQuestion);
+                
+                aspectRatioSelector.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'BUTTON') {
+                        currentAspectRatio = e.target.dataset.aspect;
+                        updateAspectRatioButtons();
+                    }
+                });
+                updateAspectRatioButtons();
+
+                downloadButton.addEventListener('click', downloadImage);
+                
+                editButton.addEventListener('click', () => {
+                    const editPrompt = editPromptInput.value;
+                    if (editPrompt) {
+                        editImage(editPrompt);
+                    } else {
+                        showTemporaryStatus('Please enter an edit description.');
+                    }
+                });
+                
+                extractOutfitButton.addEventListener('click', extractAndApplyOutfitChange);
+                uploadButton.addEventListener('click', () => uploadInput.click());
+                uploadInput.addEventListener('change', handleImageUpload);
+            
+                changeBackgroundButton.addEventListener('click', changeBackground);
+
+                // Style Transfer Listeners
+                styleSourceUploadButton.addEventListener('click', () => styleSourceInput.click());
+                styleSourceInput.addEventListener('change', handleStyleSourceUpload);
+                targetImageUploadButton.addEventListener('click', () => targetImageInput.click());
+                targetImageInput.addEventListener('change', handleTargetImageUpload);
+                applyStyleButton.addEventListener('click', applyMakeupAndHairstyle);
+
+                themeToggle.addEventListener('click', () => {
+                    const isDark = document.documentElement.classList.toggle('dark');
+                    localStorage.theme = isDark ? 'dark' : 'light';
+                    applyTheme();
+                });
+
+                changeAppBgButton.addEventListener('click', () => appBgInput.click());
+                appBgInput.addEventListener('change', (event) => {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const imageUrl = e.target.result;
+                        document.body.style.backgroundImage = `url('${imageUrl}')`;
+                        try {
+                            localStorage.setItem('appBackgroundImage', imageUrl);
+                        } catch (error) {
+                            console.error("Could not save background to local storage:", error);
+                            showTemporaryStatus("Couldn't save new background permanently.");
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                });
+            } catch (error) {
+                console.error("A critical error occurred during initialization:", error);
+                errorMessageElement.textContent = "A critical error occurred on startup. Please check the console for details.";
+                errorContainer.classList.remove('hidden');
+            }
+        });
+        
+        function checkCanApplyStyle() {
+            if(styleSourceImageData && targetImageData) {
+                applyStyleButton.disabled = false;
+            } else {
+                applyStyleButton.disabled = true;
+            }
+        }
+
+        function handleStyleSourceUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                styleSourceImageData = e.target.result.split(',')[1];
+                styleSourcePreview.style.backgroundImage = `url('${e.target.result}')`;
+                styleSourcePreview.innerHTML = ''; // Clear icon
+                checkCanApplyStyle();
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function handleTargetImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                targetImageData = e.target.result.split(',')[1];
+                targetImagePreview.style.backgroundImage = `url('${e.target.result}')`;
+                targetImagePreview.innerHTML = ''; // Clear icon
+                checkCanApplyStyle();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateAspectRatioButtons() {
+            const buttons = aspectRatioSelector.querySelectorAll('button');
+            buttons.forEach(button => {
+                if (button.dataset.aspect === currentAspectRatio) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+        }
+        
+        function showTemporaryStatus(message, duration = 3000) {
+            statusElement.textContent = message;
+            setTimeout(() => {
+                if (statusElement.textContent === message) {
+                    statusElement.textContent = '';
+                }
+            }, duration);
+        }
+
+        async function fetchWithExponentialBackoff(url, options, retries = 5, delay = 1000) {
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    if (response.status === 429 && retries > 0) {
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        return fetchWithExponentialBackoff(url, options, retries - 1, delay * 2);
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response;
+            } catch (error) {
+                if (retries > 0) {
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return fetchWithExponentialBackoff(url, options, retries - 1, delay * 2);
+                }
+                throw error;
+            }
+        }
+        
+        function getGenerateContentError(result) {
+            // Check for a specific block reason
+            if (result && result.promptFeedback && result.promptFeedback.blockReason) {
+                return `Request was blocked due to: ${result.promptFeedback.blockReason}. Please modify your prompt.`;
+            }
+            // Check for other errors in the response
+            if (result && result.error && result.error.message) {
+                return `API Error: ${result.error.message}`;
+            }
+            // Generic error if no specific information is found
+            return 'The model could not generate the content. Please try a different prompt.';
+        }
+
+
+        function downloadImage() {
+            if (!generatedImageData) {
+                showTemporaryStatus('No image to download.');
+                return;
+            }
+            const link = document.createElement('a');
+            link.href = `data:image/png;base64,${generatedImageData}`;
+            link.download = `ai-studio-image-${Date.now()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function resetAnalysisState() {
+            descriptionOutput.textContent = '';
+            questionInput.value = '';
+            readAloudButton.disabled = true;
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                generatedImageData = e.target.result.split(',')[1];
+                imageElement.src = e.target.result;
+                
+                placeholderText.classList.add('hidden');
+                loader.classList.add('hidden');
+                imageElement.classList.remove('hidden');
+                controlsContainer.classList.remove('hidden');
+                statusElement.textContent = 'Image uploaded successfully.';
+                resetAnalysisState();
+                editPromptInput.value = '';
+            };
+            reader.readAsDataURL(file);
+            event.target.value = null;
+        }
+
+
+        async function applyMakeupAndHairstyle() {
+            if (!checkApiKey() || !styleSourceImageData || !targetImageData) {
+                showTemporaryStatus('Please upload both a style source and a target image.');
+                return;
+            }
+
+            placeholderText.classList.add('hidden');
+            loader.classList.remove('hidden');
+            imageElement.classList.add('hidden');
+            statusElement.textContent = 'Applying new style... This may take a moment.';
+            errorContainer.classList.add('hidden');
+            applyStyleButton.disabled = true;
+            applyStyleButton.textContent = 'Applying...';
+            
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{
+                    parts: [
+                        { text: "Apply the makeup and hairstyle from the first image (style source) to the person in the second image (target). Keep the target person's identity and facial features intact, only changing their makeup and hair." },
+                        { inlineData: { mimeType: "image/png", data: styleSourceImageData } },
+                        { inlineData: { mimeType: "image/png", data: targetImageData } }
+                    ]
+                }],
+                generationConfig: {
+                    responseModalities: ['IMAGE']
+                },
+            };
+
+            try {
+                const response = await fetchWithExponentialBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                const newImageData = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+
+                if (newImageData) {
+                    generatedImageData = newImageData; // Update main image
+                    imageElement.src = `data:image/png;base64,${generatedImageData}`;
+                    loader.classList.add('hidden');
+                    imageElement.classList.remove('hidden');
+                    statusElement.textContent = 'Makeup & Hairstyle applied successfully!';
+                    controlsContainer.classList.remove('hidden'); // Ensure controls are visible for the new image
+                    resetAnalysisState();
+                } else {
+                    throw new Error(getGenerateContentError(result));
+                }
+            } catch (error) {
+                console.error('Style transfer failed:', error);
+                loader.classList.add('hidden');
+                placeholderText.classList.remove('hidden');
+                errorMessageElement.textContent = `Failed to apply style. ${error.message}`;
+                errorContainer.classList.remove('hidden');
+                statusElement.textContent = 'Style transfer failed.';
+            } finally {
+                applyStyleButton.disabled = false;
+                applyStyleButton.textContent = 'Apply Makeup & Hairstyle';
+            }
+        }
+
+
+        async function changeBackground() {
+            const backgroundPrompt = backgroundPromptInput.value;
+            if (!backgroundPrompt) {
+                showTemporaryStatus('Please enter a description for the new background.');
+                return;
+            }
+            if (!checkApiKey() || !generatedImageData) {
+                showTemporaryStatus('Please generate or upload an image first.');
+                return;
+            }
+
+            placeholderText.classList.add('hidden');
+            loader.classList.remove('hidden');
+            imageElement.classList.add('hidden');
+            statusElement.textContent = 'Changing background... This may take a moment.';
+            errorContainer.classList.add('hidden');
+            changeBackgroundButton.disabled = true;
+            changeBackgroundButton.textContent = 'Applying...';
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{
+                    parts: [
+                        { text: `Change the background of this image to: "${backgroundPrompt}". IMPORTANT: Keep the foreground subject (the person, throne, and sword) exactly the same, without any changes.` },
+                        { inlineData: { mimeType: "image/png", data: generatedImageData } }
+                    ]
+                }],
+                generationConfig: {
+                    responseModalities: ['IMAGE']
+                },
+            };
+
+            try {
+                const response = await fetchWithExponentialBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                const newImageData = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+
+                if (newImageData) {
+                    generatedImageData = newImageData;
+                    imageElement.src = `data:image/png;base64,${generatedImageData}`;
+                    loader.classList.add('hidden');
+                    imageElement.classList.remove('hidden');
+                    statusElement.textContent = 'Background changed successfully!';
+                    resetAnalysisState();
+                    backgroundPromptInput.value = ''; 
+                } else {
+                    throw new Error(getGenerateContentError(result));
+                }
+            } catch (error) {
+                console.error('Background change failed:', error);
+                loader.classList.add('hidden');
+                imageElement.classList.remove('hidden'); // Show original image on failure
+                errorMessageElement.textContent = `Failed to change background. ${error.message}`;
+                errorContainer.classList.remove('hidden');
+                statusElement.textContent = 'Background change failed.';
+            } finally {
+                changeBackgroundButton.disabled = false;
+                changeBackgroundButton.textContent = '🖼️ Change Background';
+            }
+        }
+
+
+        async function generateImage() {
+            if (!checkApiKey()) return;
+
+            const prompt = promptInput.value;
+            if (!prompt) {
+                showTemporaryStatus('Please enter a prompt to generate an image.');
+                return;
+            }
+
+            const imageContainer = document.getElementById('image-container');
+            imageContainer.classList.remove('aspect-square', 'aspect-video', 'aspect-9-16', 'aspect-[4/3]', 'aspect-3-4');
+            if (currentAspectRatio === '1:1') imageContainer.classList.add('aspect-square');
+            else if (currentAspectRatio === '16:9') imageContainer.classList.add('aspect-video');
+            else if (currentAspectRatio === '4:3') imageContainer.classList.add('aspect-[4/3]');
+            else if (currentAspectRatio === '9:16') imageContainer.classList.add('aspect-9-16');
+            else if (currentAspectRatio === '3:4') imageContainer.classList.add('aspect-3-4');
+
+
+            placeholderText.classList.add('hidden');
+            loader.classList.remove('hidden');
+            imageElement.classList.add('hidden');
+            statusElement.textContent = 'Generating image... This may take a moment.';
+            controlsContainer.classList.add('hidden');
+            errorContainer.classList.add('hidden');
+            generateButton.disabled = true;
+            generateButton.textContent = 'Generating...';
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+            const payload = { 
+                instances: [{ "prompt": `${prompt}, aspect_ratio: ${currentAspectRatio}` }],
+                parameters: { "sampleCount": 1 }
+            };
+
+            try {
+                const response = await fetchWithExponentialBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                    generatedImageData = result.predictions[0].bytesBase64Encoded;
+                    imageElement.src = `data:image/png;base64,${generatedImageData}`;
+                    loader.classList.add('hidden');
+                    imageElement.classList.remove('hidden');
+                    statusElement.textContent = 'Image generated successfully!';
+                    controlsContainer.classList.remove('hidden');
+                    resetAnalysisState();
+                } else {
+                    throw new Error(result.error ? result.error.message : 'No image data returned from API.');
+                }
+            } catch (error) {
+                console.error('Image generation failed:', error);
+                loader.classList.add('hidden');
+                placeholderText.classList.remove('hidden'); // Show placeholder on failure
+                errorMessageElement.textContent = `Image generation failed. ${error.message}`;
+                errorContainer.classList.remove('hidden');
+                statusElement.textContent = 'Image generation failed.';
+            } finally {
+                generateButton.disabled = false;
+                generateButton.textContent = 'Generate Image';
+            }
+        }
+
+        async function suggestPrompt() {
+            if (!checkApiKey()) return;
+
+            statusElement.textContent = 'Getting a suggestion...';
+            suggestButton.disabled = true;
+            suggestButton.textContent = '...';
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: "Suggest a short, creative, and visually interesting prompt for an AI image generator. The prompt should be a single sentence and not a question." }] }],
+                 systemInstruction: {
+                    parts: [{ text: "You are a creative assistant that provides prompts for an AI image generator." }]
+                },
+            };
+
+            try {
+                const response = await fetchWithExponentialBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                const suggestion = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (suggestion) {
+                    promptInput.value = suggestion.trim().replace(/^"|"$/g, ''); // Remove quotes
+                    statusElement.textContent = 'New prompt suggested!';
+                } else {
+                     throw new Error('Could not retrieve a suggestion.');
+                }
+            } catch (error) {
+                console.error('Prompt suggestion failed:', error);
+                statusElement.textContent = 'Failed to get a suggestion.';
+            } finally {
+                suggestButton.disabled = false;
+                suggestButton.textContent = '✨ Suggest a Prompt';
+            }
+        }
+        
+        async function askQuestion() {
+            const question = questionInput.value;
+            if (!question) {
+                showTemporaryStatus('Please enter a question to ask about the image.');
+                return;
+            }
+             if (!checkApiKey() || !generatedImageData) {
+                showTemporaryStatus('Please generate or upload an image first.');
+                return;
+            }
+
+            descriptionOutput.textContent = 'Thinking...';
+            askButton.disabled = true;
+            askButton.textContent = 'Asking...';
+            readAloudButton.disabled = true;
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [
+                    {
+                        role: "user",
+                        parts: [
+                            { text: question },
+                            { inlineData: { mimeType: "image/png", data: generatedImageData } }
+                        ]
+                    }
+                ],
+            };
+             try {
+                const response = await fetchWithExponentialBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                const answer = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (answer) {
+                    descriptionOutput.textContent = answer;
+                    readAloudButton.disabled = false;
+                } else {
+                    throw new Error(getGenerateContentError(result));
+                }
+            } catch (error) {
+                console.error('Asking question failed:', error);
+                descriptionOutput.textContent = `Failed to get an answer. ${error.message}`;
+            } finally {
+                askButton.disabled = false;
+                askButton.textContent = '❓ Ask Question';
+                questionInput.value = '';
+            }
+        }
+
+
+        async function describeImage() {
+            if (!checkApiKey() || !generatedImageData) {
+                showTemporaryStatus('Please generate or upload an image first to describe it.');
+                return;
+            }
+
+            descriptionOutput.textContent = 'Analyzing...';
+            describeButton.disabled = true;
+            describeButton.textContent = 'Analyzing...';
+            readAloudButton.disabled = true;
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [
+                    {
+                        role: "user",
+                        parts: [
+                            { text: "Provide a concise description of this image, focusing on the main subject, their clothing, and the setting." },
+                            { inlineData: { mimeType: "image/png", data: generatedImageData } }
+                        ]
+                    }
+                ],
+            };
+
+            try {
+                const response = await fetchWithExponentialBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                const description = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (description) {
+                    descriptionOutput.textContent = description;
+                    readAloudButton.disabled = false;
+                } else {
+                    throw new Error(getGenerateContentError(result));
+                }
+            } catch (error) {
+                console.error('Image description failed:', error);
+                descriptionOutput.textContent = `Failed to analyze the image. ${error.message}`;
+            } finally {
+                describeButton.disabled = false;
+                describeButton.textContent = '🔬 Analyze Image';
+            }
+        }
+
+        async function readAloud() {
+            const textToSpeak = descriptionOutput.textContent;
+            if (!textToSpeak || textToSpeak === 'Analyzing...' || textToSpeak === 'Thinking...') {
+                showTemporaryStatus('Nothing to read yet. Analyze the image first.');
+                return;
+            }
+            if (!checkApiKey()) return;
+
+            readAloudButton.disabled = true;
+            const originalButtonContent = readAloudButton.innerHTML;
+            readAloudButton.innerHTML = `<svg class="w-5 h-5 mr-2 animate-pulse" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zM4 9a1 1 0 011 1v4a1 1 0 11-2 0v-4a1 1 0 011-1zM16 9a1 1 0 011 1v4a1 1 0 11-2 0v-4a1 1 0 011-1z"></path></svg> Reading...`;
+            
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: textToSpeak }] }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            try {
+                const response = await fetchWithExponentialBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    
+                    const audio = new Audio(audioUrl);
+                    audio.play();
+                    audio.onended = () => {
+                         readAloudButton.disabled = false;
+                         readAloudButton.innerHTML = originalButtonContent;
+                    };
+                } else {
+                     throw new Error('No audio data received from API.');
+                }
+
+            } catch(error) {
+                 console.error('Text-to-speech failed:', error);
+                 statusElement.textContent = `Failed to read aloud. ${error.message}`;
+                 readAloudButton.disabled = false;
+                 readAloudButton.innerHTML = originalButtonContent;
+            }
+        }
+        
+        async function extractAndApplyOutfitChange() {
+            if (!checkApiKey() || !generatedImageData) {
+                showTemporaryStatus('Please generate or upload an image first.');
+                return;
+            }
+            
+            const originalStatusText = statusElement.textContent;
+            statusElement.textContent = 'Analyzing outfit for editing...';
+            extractOutfitButton.disabled = true;
+            extractOutfitButton.textContent = 'Analyzing...';
+            
+            // First, get a description of the outfit
+            const describeApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const describePayload = {
+                contents: [{
+                    parts: [
+                        { text: "Based on the image, what is a simple, creative, and different outfit the person could wear? For example, if they are wearing a t-shirt, suggest a leather jacket. Provide only the name of the new outfit, like 'a black leather jacket and sunglasses'." },
+                        { inlineData: { mimeType: "image/png", data: generatedImageData } }
+                    ]
+                }],
+            };
+
+            try {
+                const describeResponse = await fetchWithExponentialBackoff(describeApiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(describePayload)
+                });
+                const describeResult = await describeResponse.json();
+                const outfitSuggestion = describeResult.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (!outfitSuggestion) {
+                    throw new Error('Could not get an outfit suggestion.');
+                }
+                
+                // Now, call the edit function with the new outfit
+                statusElement.textContent = `Changing outfit to: ${outfitSuggestion.trim()}`;
+                await editImage(`make the person wear ${outfitSuggestion.trim()}`);
+                
+            } catch (error) {
+                console.error('Smart outfit change failed:', error);
+                errorMessageElement.textContent = `Smart outfit change failed: ${error.message}`;
+                errorContainer.classList.remove('hidden');
+                statusElement.textContent = originalStatusText; // Restore original status
+            } finally {
+                extractOutfitButton.disabled = false;
+                extractOutfitButton.textContent = '👗 ✨ Smart Outfit Change';
+            }
+        }
+
+
+        async function editImage(editPrompt) {
+            if (!checkApiKey() || !generatedImageData) {
+                showTemporaryStatus('Please generate or upload an image first to edit it.');
+                return;
+            }
+            if (!editPrompt) {
+                showTemporaryStatus('Please provide instructions on how to edit the image.');
+                return;
+            }
+            
+            placeholderText.classList.add('hidden');
+            loader.classList.remove('hidden');
+            imageElement.classList.add('hidden');
+            statusElement.textContent = 'Applying edits... This may take a moment.';
+            errorContainer.classList.add('hidden');
+            editButton.disabled = true;
+            editButton.textContent = 'Applying...';
+            extractOutfitButton.disabled = true;
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{
+                    parts: [
+                        { text: editPrompt },
+                        { inlineData: { mimeType: "image/png", data: generatedImageData } }
+                    ]
+                }],
+                generationConfig: {
+                    responseModalities: ['IMAGE']
+                },
+            };
+
+            try {
+                const response = await fetchWithExponentialBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                const newImageData = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+
+                if (newImageData) {
+                    generatedImageData = newImageData;
+                    imageElement.src = `data:image/png;base64,${generatedImageData}`;
+                    loader.classList.add('hidden');
+                    imageElement.classList.remove('hidden');
+                    statusElement.textContent = 'Image edited successfully!';
+                    resetAnalysisState();
+                    editPromptInput.value = ''; // Clear the prompt
+                } else {
+                     throw new Error(getGenerateContentError(result));
+                }
+            } catch (error) {
+                console.error('Image edit failed:', error);
+                loader.classList.add('hidden');
+                imageElement.classList.remove('hidden'); // Show original image on failure
+                errorMessageElement.textContent = `Image edit failed. ${error.message}`;
+                errorContainer.classList.remove('hidden');
+                statusElement.textContent = 'Image edit failed.';
+            } finally {
+                editButton.disabled = false;
+                editButton.textContent = '🎨 Apply Edit Manually';
+                extractOutfitButton.disabled = false;
+            }
+        }
+        
+        // --- AUDIO HELPER FUNCTIONS ---
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcmData, sampleRate) {
+            const numChannels = 1;
+            const bitsPerSample = 16;
+            const byteRate = sampleRate * numChannels * bitsPerSample / 8;
+            const blockAlign = numChannels * bitsPerSample / 8;
+            const dataSize = pcmData.byteLength;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            function writeString(view, offset, string) {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            }
+
+            // RIFF header
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(view, 8, 'WAVE');
+            // fmt chunk
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, bitsPerSample, true);
+            // data chunk
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            const pcmAsUint8 = new Uint8Array(pcmData.buffer);
+            for (let i = 0; i < dataSize; i++) {
+                view.setUint8(44 + i, pcmAsUint8[i]);
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+    </script>
+</body>
+</html>
 
