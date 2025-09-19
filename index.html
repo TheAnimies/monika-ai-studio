@@ -222,6 +222,7 @@
     </div>
 
     <script>
+        const apiKey = ""; // Leave as-is; handled by the environment
         const promptInput = document.getElementById('prompt-input');
         const generateButton = document.getElementById('generate-button');
         const suggestButton = document.getElementById('suggest-button');
@@ -506,7 +507,7 @@
             applyStyleButton.disabled = true;
             applyStyleButton.textContent = 'Applying...';
             
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
 
             const payload = {
                 contents: [{
@@ -574,7 +575,7 @@
             changeBackgroundButton.disabled = true;
             changeBackgroundButton.textContent = 'Applying...';
 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
 
             const payload = {
                 contents: [{
@@ -647,7 +648,7 @@
             generateButton.disabled = true;
             generateButton.textContent = 'Generating...';
 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
             const payload = { 
                 instances: [{ "prompt": `${prompt}, aspect_ratio: ${currentAspectRatio}` }],
                 parameters: { "sampleCount": 1 }
@@ -690,7 +691,7 @@
             suggestButton.disabled = true;
             suggestButton.textContent = '...';
 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
             const payload = {
                 contents: [{ parts: [{ text: "Suggest a short, creative, and visually interesting prompt for an AI image generator. The prompt should be a single sentence and not a question." }] }],
                  systemInstruction: {
@@ -737,7 +738,7 @@
             askButton.textContent = 'Asking...';
             readAloudButton.disabled = true;
 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
             const payload = {
                 contents: [
                     {
@@ -785,7 +786,7 @@
             describeButton.textContent = 'Analyzing...';
             readAloudButton.disabled = true;
 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
             const payload = {
                 contents: [
                     {
@@ -832,7 +833,7 @@
             const originalButtonContent = readAloudButton.innerHTML;
             readAloudButton.innerHTML = `<svg class="w-5 h-5 mr-2 animate-pulse" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zM4 9a1 1 0 011 1v4a1 1 0 11-2 0v-4a1 1 0 011-1zM16 9a1 1 0 011 1v4a1 1 0 11-2 0v-4a1 1 0 011-1z"></path></svg> Reading...`;
             
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
             const payload = {
                 contents: [{ parts: [{ text: textToSpeak }] }],
                 generationConfig: {
@@ -889,7 +890,7 @@
             extractOutfitButton.textContent = 'Analyzing...';
             
             // First, get a description of the outfit
-            const describeApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent`;
+            const describeApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
             const describePayload = {
                 contents: [{
                     parts: [
@@ -947,7 +948,7 @@
             editButton.textContent = 'Applying...';
             extractOutfitButton.disabled = true;
 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
 
             const payload = {
                 contents: [{
