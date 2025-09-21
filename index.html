@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>Monika: AI-Powered Image Studio</title>
+    <title>Monika: Local Image Studio</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-image: url('ai-image-studio (9).jpg');
+            background-image: url('https://images.unsplash.com/photo-1679085299996-58a69116a4f1?q=80&w=2070&auto=format&fit=crop');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -29,15 +29,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* Simple transition for smooth visibility changes */
-        .fade-in {
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        /* Custom styles for aspect ratio buttons and new aspect ratios */
         .aspect-ratio-btn.active {
             background-color: #fff;
             color: #1f2937;
@@ -47,25 +38,14 @@
             background-color: #4b5563;
             color: #fff;
         }
-        .aspect-9-16 {
-            aspect-ratio: 9 / 16;
-        }
-        .aspect-3-4 {
-            aspect-ratio: 3 / 4;
-        }
+        .aspect-9-16 { aspect-ratio: 9 / 16; }
+        .aspect-3-4 { aspect-ratio: 3 / 4; }
         button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
-        .image-preview-box {
-            width: 100px;
-            height: 100px;
-            background-color: #e5e7eb;
-            background-size: cover;
-            background-position: center;
-        }
-        .dark .image-preview-box {
-            background-color: #4b5563;
+        #refresh-checkpoints-button:hover svg {
+            transform: rotate(180deg);
         }
     </style>
 </head>
@@ -75,319 +55,182 @@
         <div class="flex justify-between items-start mb-6">
             <div class="text-left">
                 <h1 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">Monika</h1>
-                <p class="text-gray-600 dark:text-gray-400 mt-1">Your AI-Powered Image Studio</p>
+                <p class="text-gray-600 dark:text-gray-400 mt-1">Your Local Image Studio</p>
             </div>
-            <div class="flex items-center space-x-2">
-                <button id="change-app-bg-button" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800">
-                    <svg class="w-5 h-5 text-gray-800 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 14m6-6l.01.01"></path></svg>
-                </button>
-                <input type="file" id="app-bg-input" class="hidden" accept="image/*">
-                <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800">
-                    <svg id="theme-toggle-dark-icon" class="w-5 h-5 text-gray-800 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                    <svg id="theme-toggle-light-icon" class="hidden w-5 h-5 text-gray-800 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                </button>
-            </div>
+            <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800">
+                <svg id="theme-toggle-dark-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            </button>
         </div>
 
+        <!-- Prompt Area -->
         <div class="mb-4">
-            <label for="prompt-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">1. Generate an Image from Text</label>
-            <textarea id="prompt-input" rows="3" class="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white" placeholder="Describe the image you want to create..."></textarea>
-            
-            <div class="my-4">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Aspect Ratio</label>
-                <div id="aspect-ratio-selector" class="grid grid-cols-3 sm:grid-cols-5 gap-1 rounded-lg bg-gray-200 dark:bg-gray-700 p-1">
-                    <button data-aspect="1:1" class="aspect-ratio-btn flex-1 py-2 px-3 text-sm font-semibold rounded-md transition-colors">Square</button>
-                    <button data-aspect="16:9" class="aspect-ratio-btn flex-1 py-2 px-3 text-sm font-semibold rounded-md transition-colors">Landscape</button>
-                    <button data-aspect="4:3" class="aspect-ratio-btn flex-1 py-2 px-3 text-sm font-semibold rounded-md transition-colors">4:3</button>
-                    <button data-aspect="9:16" class="aspect-ratio-btn flex-1 py-2 px-3 text-sm font-semibold rounded-md transition-colors">Portrait</button>
-                    <button data-aspect="3:4" class="aspect-ratio-btn flex-1 py-2 px-3 text-sm font-semibold rounded-md transition-colors">3:4</button>
+            <!-- NEW: Checkpoint Selector -->
+            <div class="mb-4">
+                <label for="checkpoint-selector" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Stable Diffusion Checkpoint</label>
+                <div class="flex items-center space-x-2">
+                    <select id="checkpoint-selector" class="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white">
+                        <option>Loading models...</option>
+                    </select>
+                    <button id="refresh-checkpoints-button" class="p-3 bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500" title="Refresh Model List">
+                        <svg class="w-5 h-5 text-gray-800 dark:text-gray-200 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M20 4h-5v5M4 20h5v-5"></path></svg>
+                    </button>
                 </div>
             </div>
 
-            <div class="flex justify-between items-center mt-2 space-x-2">
-                <button id="suggest-button" class="flex-1 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-sm font-semibold py-2 px-4 rounded-lg">✨ Suggest a Prompt</button>
-                <button id="generate-button" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">Generate Image</button>
+            <label for="prompt-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Enter your prompt</label>
+            <textarea id="prompt-input" rows="3" class="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white" placeholder="a photograph of an astronaut riding a horse..."></textarea>
+            
+            <div class="my-4 space-y-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Aspect Ratio</label>
+                    <div id="aspect-ratio-selector" class="grid grid-cols-3 sm:grid-cols-5 gap-1 rounded-lg bg-gray-200 dark:bg-gray-700 p-1">
+                        <button data-aspect="1:1" class="aspect-ratio-btn flex-1 py-2 px-3 text-sm font-semibold rounded-md">Square</button>
+                        <button data-aspect="16:9" class="aspect-ratio-btn flex-1 py-2 px-3 text-sm font-semibold rounded-md">Landscape</button>
+                        <button data-aspect="4:3" class="aspect-ratio-btn flex-1 py-2 px-3 text-sm font-semibold rounded-md">4:3</button>
+                        <button data-aspect="9:16" class="aspect-ratio-btn flex-1 py-2 px-3 text-sm font-semibold rounded-md">Portrait</button>
+                        <button data-aspect="3:4" class="aspect-ratio-btn flex-1 py-2 px-3 text-sm font-semibold rounded-md">3:4</button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-start pt-2">
+                    <input id="restore-face-checkbox" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <label for="restore-face-checkbox" class="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Restore Face ✨</label>
+                </div>
             </div>
+
+            <button id="generate-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">Generate Image</button>
         </div>
 
-        <div class="relative flex py-2 items-center">
-            <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
-            <span class="flex-shrink mx-4 text-gray-500 dark:text-gray-400 text-sm">OR</span>
-            <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
-        </div>
-
-        <div class="mb-4">
-            <label for="upload-button" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">2. Upload Your Own Image</label>
-            <input type="file" id="upload-input" class="hidden" accept="image/*">
-            <button id="upload-button" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg">📤 Upload an Image</button>
-        </div>
-
-        <div id="image-container" class="w-full bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-6 overflow-hidden transition-all duration-300">
+        <div id="image-container" class="w-full bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-6 overflow-hidden">
             <div id="placeholder-text" class="text-gray-500 dark:text-gray-400 text-center p-4">
-                <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 14m6-6l.01.01"></path></svg>
-                <p class="mt-2 font-semibold">Your image will appear here</p>
-                <p class="text-sm">Enter a prompt or upload an image to start.</p>
+                <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 14m6-6l.01.01"></path></svg>
+                <p class="mt-2 font-semibold">Your generated image will appear here</p>
             </div>
             <div id="loader" class="loader hidden"></div>
             <img id="generated-image" src="" alt="Generated Image" class="hidden w-full h-full object-cover">
         </div>
 
-        <div id="status" class="text-center text-sm text-gray-500 dark:text-gray-400 min-h-[20px]">
-        </div>
+        <div id="status" class="text-center text-sm text-gray-500 dark:text-gray-400 min-h-[20px]"></div>
         
-        <div id="error-container" class="hidden mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+        <div id="error-container" class="hidden mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative">
             <strong class="font-bold">Error:</strong>
             <span class="block sm:inline" id="error-message"></span>
         </div>
 
-        <div id="controls-container" class="hidden fade-in">
-            <div class="text-center mb-6">
-                <button id="download-button" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg inline-flex items-center">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    Download Image
-                </button>
-            </div>
-
-            <div id="description-section" class="mt-6">
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-2 text-center">✨ Image Analysis & Interaction (Uses Gemini API)</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
-                    <button id="describe-button" class="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg">🔬 Analyze Image</button>
-                    <button id="read-aloud-button" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg inline-flex items-center justify-center" disabled>
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                        Read Aloud
-                    </button>
-                </div>
-                <div id="description-output" class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm text-gray-600 dark:text-gray-300 min-h-[50px]"></div>
-                <div id="ask-question-section" class="mt-4">
-                    <textarea id="question-input" rows="2" class="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white" placeholder="Ask a specific question about the image..."></textarea>
-                    <button id="ask-button" class="w-full mt-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg">❓ Ask Question</button>
-                </div>
-            </div>
-    
-            <div id="edit-section" class="mt-6">
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-2 text-center">Edit Image (Uses Gemini API)</h2>
-                <textarea id="edit-prompt-input" rows="3" class="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white" placeholder="e.g., 'change her dress to blue' or 'make her wear a red jacket and sunglasses'"></textarea>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-                    <button id="edit-button" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg">🎨 Apply Edit Manually</button>
-                    <button id="extract-outfit-button" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg">👗 ✨ Smart Outfit Change</button>
-                </div>
-            </div>
-
-            <div id="background-section" class="mt-6">
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-2 text-center">Change Background (Uses Gemini API)</h2>
-                <textarea id="background-prompt-input" rows="3" class="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white" placeholder="e.g., 'a futuristic cityscape with flying cars' or 'a serene beach at sunset'"></textarea>
-                <div class="mt-2">
-                    <button id="change-background-button" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded-lg">🖼️ Change Background</button>
-                </div>
-            </div>
-            
-            <div id="style-transfer-section" class="mt-6">
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-2 text-center">💄 Makeup & Hairstyle Transfer (Uses Gemini API)</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="text-center">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Style Source</label>
-                        <div id="style-source-preview" class="image-preview-box rounded-lg mx-auto mb-2 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                        </div>
-                        <input type="file" id="style-source-input" class="hidden" accept="image/*">
-                        <button id="style-source-upload-button" class="w-full text-sm bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-semibold py-2 px-4 rounded-lg">Upload Style</button>
-                    </div>
-                    <div class="text-center">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Target Image</label>
-                        <div id="target-image-preview" class="image-preview-box rounded-lg mx-auto mb-2 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 14m6-6l.01.01"></path></svg>
-                        </div>
-                        <input type="file" id="target-image-input" class="hidden" accept="image/*">
-                        <button id="target-image-upload-button" class="w-full text-sm bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-semibold py-2 px-4 rounded-lg">Upload Target</button>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <button id="apply-style-button" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold py-2 px-4 rounded-lg" disabled>Apply Makeup & Hairstyle</button>
-                </div>
-            </div>
+        <div id="controls-container" class="hidden text-center">
+            <button id="download-button" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg inline-flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Download Image
+            </button>
         </div>
-
     </div>
 
 <script>
-    console.log("Monika AI Studio script started successfully.");
+    console.log("Monika AI Studio (Local) script started successfully.");
 
-    // IMPORTANT: Your Google AI API key is needed for analysis & editing features.
-    const apiKey = "YOUR_API_KEY_HERE"; 
+    // --- NEW: Get the checkpoint selector elements ---
+    const checkpointSelector = document.getElementById('checkpoint-selector');
+    const refreshCheckpointsButton = document.getElementById('refresh-checkpoints-button');
 
     const promptInput = document.getElementById('prompt-input');
     const generateButton = document.getElementById('generate-button');
-    const suggestButton = document.getElementById('suggest-button');
-    const uploadButton = document.getElementById('upload-button');
-    const uploadInput = document.getElementById('upload-input');
     const imageElement = document.getElementById('generated-image');
     const placeholderText = document.getElementById('placeholder-text');
     const loader = document.getElementById('loader');
     const statusElement = document.getElementById('status');
     const controlsContainer = document.getElementById('controls-container');
-    
     const errorContainer = document.getElementById('error-container');
     const errorMessageElement = document.getElementById('error-message');
-    
-    const describeButton = document.getElementById('describe-button');
-    const descriptionOutput = document.getElementById('description-output');
-    const readAloudButton = document.getElementById('read-aloud-button');
-    const questionInput = document.getElementById('question-input');
-    const askButton = document.getElementById('ask-button');
-
-    const editPromptInput = document.getElementById('edit-prompt-input');
-    const editButton = document.getElementById('edit-button');
-    const extractOutfitButton = document.getElementById('extract-outfit-button');
-    
-    const backgroundPromptInput = document.getElementById('background-prompt-input');
-    const changeBackgroundButton = document.getElementById('change-background-button');
-
     const aspectRatioSelector = document.getElementById('aspect-ratio-selector');
     const downloadButton = document.getElementById('download-button');
-
-    const styleSourceInput = document.getElementById('style-source-input');
-    const styleSourceUploadButton = document.getElementById('style-source-upload-button');
-    const styleSourcePreview = document.getElementById('style-source-preview');
-    const targetImageInput = document.getElementById('target-image-input');
-    const targetImageUploadButton = document.getElementById('target-image-upload-button');
-    const targetImagePreview = document.getElementById('target-image-preview');
-    const applyStyleButton = document.getElementById('apply-style-button');
-    
     const themeToggle = document.getElementById('theme-toggle');
     const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
     const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
-
-    const changeAppBgButton = document.getElementById('change-app-bg-button');
-    const appBgInput = document.getElementById('app-bg-input');
+    const restoreFaceCheckbox = document.getElementById('restore-face-checkbox');
 
     let generatedImageData = null;
-    let styleSourceImageData = null;
-    let targetImageData = null;
     let currentAspectRatio = '1:1';
     
-    function checkApiKey() {
-        if (!apiKey || apiKey === "YOUR_API_KEY_HERE") {
-            errorMessageElement.textContent = "Google AI API Key is missing. Analysis and editing features are disabled.";
-            errorContainer.classList.remove('hidden');
-            return false;
-        }
-        return true;
-    }
-
     const applyTheme = () => {
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
-            if(themeToggleDarkIcon) themeToggleDarkIcon.classList.add('hidden');
-            if(themeToggleLightIcon) themeToggleLightIcon.classList.remove('hidden');
+            themeToggleDarkIcon.classList.add('hidden');
+            themeToggleLightIcon.classList.remove('hidden');
         } else {
             document.documentElement.classList.remove('dark');
-            if(themeToggleDarkIcon) themeToggleDarkIcon.classList.remove('hidden');
-            if(themeToggleLightIcon) themeToggleLightIcon.classList.add('hidden');
+            themeToggleDarkIcon.classList.remove('hidden');
+            themeToggleLightIcon.classList.add('hidden');
         }
     };
     applyTheme();
 
-    const applyBackground = () => {
-        const savedBg = localStorage.getItem('appBackgroundImage');
-        if (savedBg) {
-            document.body.style.backgroundImage = `url('${savedBg}')`;
+    // --- NEW: Function to get models from Automatic1111 and populate the dropdown ---
+    async function fetchAndPopulateCheckpoints() {
+        statusElement.textContent = 'Fetching models from Automatic1111...';
+        checkpointSelector.innerHTML = '<option>Loading models...</option>';
+        try {
+            const response = await fetch('http://127.0.0.1:7860/sdapi/v1/sd-models');
+            if (!response.ok) {
+                throw new Error('Could not connect to Automatic1111. Is it running?');
+            }
+            const models = await response.json();
+            
+            checkpointSelector.innerHTML = ''; // Clear loading text
+            if (models.length === 0) {
+                 checkpointSelector.innerHTML = '<option>No models found.</option>';
+                 return;
+            }
+
+            models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model.title;
+                option.textContent = model.title;
+                checkpointSelector.appendChild(option);
+            });
+            statusElement.textContent = 'Models loaded successfully.';
+        } catch (error) {
+            console.error("Failed to fetch models:", error);
+            checkpointSelector.innerHTML = '<option>Error fetching models</option>';
+            errorMessageElement.textContent = `Could not fetch models. Make sure Automatic1111 is running with the --api flag. Error: ${error.message}`;
+            errorContainer.classList.remove('hidden');
+            statusElement.textContent = 'Failed to load models.';
         }
-    };
-    applyBackground();
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
-        try {
-            console.log("DOM fully loaded. Attaching event listeners.");
-            document.getElementById('image-container').classList.add('aspect-square');
-            generateButton.addEventListener('click', generateImage);
-            suggestButton.addEventListener('click', suggestPrompt);
-            describeButton.addEventListener('click', describeImage);
-            readAloudButton.addEventListener('click', readAloud);
-            askButton.addEventListener('click', askQuestion);
-            aspectRatioSelector.addEventListener('click', (e) => {
-                if (e.target.tagName === 'BUTTON') {
-                    currentAspectRatio = e.target.dataset.aspect;
-                    updateAspectRatioButtons();
-                }
-            });
-            updateAspectRatioButtons();
-            downloadButton.addEventListener('click', downloadImage);
-            editButton.addEventListener('click', () => {
-                const editPrompt = editPromptInput.value;
-                if (editPrompt) editImage(editPrompt);
-                else showTemporaryStatus('Please enter an edit description.');
-            });
-            extractOutfitButton.addEventListener('click', extractAndApplyOutfitChange);
-            uploadButton.addEventListener('click', () => uploadInput.click());
-            uploadInput.addEventListener('change', handleImageUpload);
-            changeBackgroundButton.addEventListener('click', changeBackground);
-            styleSourceUploadButton.addEventListener('click', () => styleSourceInput.click());
-            styleSourceInput.addEventListener('change', handleStyleSourceUpload);
-            targetImageUploadButton.addEventListener('click', () => targetImageInput.click());
-            targetImageInput.addEventListener('change', handleTargetImageUpload);
-            applyStyleButton.addEventListener('click', applyMakeupAndHairstyle);
-            themeToggle.addEventListener('click', () => {
-                const isDark = document.documentElement.classList.toggle('dark');
-                localStorage.theme = isDark ? 'dark' : 'light';
-                applyTheme();
-            });
-            changeAppBgButton.addEventListener('click', () => appBgInput.click());
-            appBgInput.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const imageUrl = e.target.result;
-                    document.body.style.backgroundImage = `url('${imageUrl}')`;
-                    try {
-                        localStorage.setItem('appBackgroundImage', imageUrl);
-                    } catch (error) {
-                        console.error("Could not save background to local storage:", error);
-                        showTemporaryStatus("Couldn't save new background permanently.");
-                    }
-                };
-                reader.readAsDataURL(file);
-            });
-        } catch (error) {
-            console.error("A critical error occurred during initialization:", error);
-            errorMessageElement.textContent = "A critical error occurred on startup. Please check the console for details.";
-            errorContainer.classList.remove('hidden');
-        }
+        console.log("DOM fully loaded. Attaching event listeners.");
+        document.getElementById('image-container').classList.add('aspect-square');
+        
+        generateButton.addEventListener('click', generateImage);
+        
+        aspectRatioSelector.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                currentAspectRatio = e.target.dataset.aspect;
+                updateAspectRatioButtons();
+            }
+        });
+        updateAspectRatioButtons();
+        
+        downloadButton.addEventListener('click', downloadImage);
+        
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.theme = isDark ? 'dark' : 'light';
+            applyTheme();
+        });
+
+        // --- NEW: Add event listener for the refresh button and fetch models on load ---
+        refreshCheckpointsButton.addEventListener('click', fetchAndPopulateCheckpoints);
+        fetchAndPopulateCheckpoints();
     });
     
-    function checkCanApplyStyle() {
-        applyStyleButton.disabled = !(styleSourceImageData && targetImageData);
-    }
-    function handleStyleSourceUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            styleSourceImageData = e.target.result.split(',')[1];
-            styleSourcePreview.style.backgroundImage = `url('${e.target.result}')`;
-            styleSourcePreview.innerHTML = '';
-            checkCanApplyStyle();
-        };
-        reader.readAsDataURL(file);
-    }
-    function handleTargetImageUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            targetImageData = e.target.result.split(',')[1];
-            targetImagePreview.style.backgroundImage = `url('${e.target.result}')`;
-            targetImagePreview.innerHTML = '';
-            checkCanApplyStyle();
-        };
-        reader.readAsDataURL(file);
-    }
     function updateAspectRatioButtons() {
         const buttons = aspectRatioSelector.querySelectorAll('button');
         buttons.forEach(button => {
             button.classList.toggle('active', button.dataset.aspect === currentAspectRatio);
         });
     }
+
     function showTemporaryStatus(message, duration = 3000) {
         statusElement.textContent = message;
         setTimeout(() => {
@@ -396,36 +239,7 @@
             }
         }, duration);
     }
-    async function fetchWithExponentialBackoff(url, options, retries = 5, delay = 1000) {
-        try {
-            const response = await fetch(url, options);
-            if (!response.ok) {
-                if (response.status === 429 && retries > 0) {
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                    return fetchWithExponentialBackoff(url, options, retries - 1, delay * 2);
-                }
-                const errorBody = await response.json().catch(() => ({ error: { message: `HTTP error! status: ${response.status}` } }));
-                const message = errorBody?.error?.message || `HTTP error! status: ${response.status}`;
-                throw new Error(message);
-            }
-            return response;
-        } catch (error) {
-            if (retries > 0) {
-                await new Promise(resolve => setTimeout(resolve, delay));
-                return fetchWithExponentialBackoff(url, options, retries - 1, delay * 2);
-            }
-            throw error;
-        }
-    }
-    function getGenerateContentError(result) {
-        if (result?.promptFeedback?.blockReason) {
-            return `Request was blocked due to: ${result.promptFeedback.blockReason}. Please modify your prompt.`;
-        }
-        if (result?.error?.message) {
-            return `API Error: ${result.error.message}`;
-        }
-        return 'The model could not generate the content. Please try a different prompt.';
-    }
+
     function downloadImage() {
         if (!generatedImageData) {
             showTemporaryStatus('No image to download.');
@@ -433,38 +247,12 @@
         }
         const link = document.createElement('a');
         link.href = `data:image/png;base64,${generatedImageData}`;
-        link.download = `monika-ai-image-${Date.now()}.png`;
+        link.download = `monika-local-image-${Date.now()}.png`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     }
-    function resetAnalysisState() {
-        descriptionOutput.textContent = '';
-        questionInput.value = '';
-        readAloudButton.disabled = true;
-    }
-    function handleImageUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            generatedImageData = e.target.result.split(',')[1];
-            imageElement.src = e.target.result;
-            placeholderText.classList.add('hidden');
-            loader.classList.add('hidden');
-            imageElement.classList.remove('hidden');
-            controlsContainer.classList.remove('hidden');
-            statusElement.textContent = 'Image uploaded successfully.';
-            resetAnalysisState();
-            editPromptInput.value = '';
-        };
-        reader.readAsDataURL(file);
-        event.target.value = null;
-    }
 
-    // ==========================================================================================
-    // ===== THE ONLY FUNCTION CHANGED: This now points to your local Automatic1111 server. =====
-    // ==========================================================================================
     async function generateImage() {
         const prompt = promptInput.value;
         if (!prompt) {
@@ -493,6 +281,9 @@
         }
         
         const apiUrl = `http://127.0.0.1:7860/sdapi/v1/txt2img`;
+        
+        // --- MODIFIED: The payload now includes an 'override_settings' block ---
+        // This tells Automatic1111 which model to use for this specific generation.
         const payload = {
             "prompt": prompt,
             "negative_prompt": "worst quality, low quality",
@@ -500,7 +291,11 @@
             "cfg_scale": 7,
             "width": width,
             "height": height,
-            "sampler_name": "DPM++ 2M Karras"
+            "sampler_name": "DPM++ 2M Karras",
+            "restore_faces": restoreFaceCheckbox.checked,
+            "override_settings": {
+                "sd_model_checkpoint": checkpointSelector.value
+            }
         };
 
         try {
@@ -521,9 +316,8 @@
                 imageElement.src = `data:image/png;base64,${generatedImageData}`;
                 loader.classList.add('hidden');
                 imageElement.classList.remove('hidden');
-                statusElement.textContent = 'Image generated successfully from Automatic1111!';
+                statusElement.textContent = 'Image generated successfully!';
                 controlsContainer.classList.remove('hidden');
-                resetAnalysisState();
             } else {
                 throw new Error('API response did not contain image data.');
             }
@@ -531,7 +325,7 @@
             console.error('Local image generation failed:', error);
             loader.classList.add('hidden');
             placeholderText.classList.remove('hidden');
-            errorMessageElement.textContent = `Local generation failed. Is Automatic1111 running with the --api flag? Check the console. Error: ${error.message}`;
+            errorMessageElement.textContent = `Local generation failed. Is Automatic1111 running? Check the console. Error: ${error.message}`;
             errorContainer.classList.remove('hidden');
             statusElement.textContent = 'Image generation failed.';
         } finally {
@@ -539,21 +333,6 @@
             generateButton.textContent = 'Generate Image';
         }
     }
-    
-    // All other functions below still use the Google Gemini API
-    // Make sure your API key is set at the top of the script for these to work.
-
-    async function applyMakeupAndHairstyle() { /* ... unchanged ... */ }
-    async function changeBackground() { /* ... unchanged ... */ }
-    async function suggestPrompt() { /* ... unchanged ... */ }
-    async function askQuestion() { /* ... unchanged ... */ }
-    async function describeImage() { /* ... unchanged ... */ }
-    async function readAloud() { /* ... unchanged ... */ }
-    async function extractAndApplyOutfitChange() { /* ... unchanged ... */ }
-    async function editImage(editPrompt) { /* ... unchanged ... */ }
-    // NOTE: I've truncated the remaining functions here for brevity, 
-    // but in your file, you should keep the full, original JavaScript for all other functions.
-
 </script>
 </body>
 </html>
